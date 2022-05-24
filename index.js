@@ -17,9 +17,27 @@ const client = new MongoClient(uri, {
   serverApi: ServerApiVersion.v1,
 });
 
+//verify jwt token
+function verifyJWT(req, res, next) {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).send({ message: "UnAuthorized access" });
+  }
+  const token = authHeader.split(" ")[1];
+  jwt.verify(token, process.env.ACCESS_TOKEN_SECRET, function (err, decoded) {
+    if (err) {
+      return res.status(403).send({ message: "Forbidden access" });
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 async function run() {
   await client.connect();
   const partsCollection = client.db("Manufacturing").collection("parts");
+  const userCollection = client.db("Manufacturing").collection("users");
+
   try {
     // find all parts
     app.get("/parts", async (req, res) => {
@@ -28,6 +46,7 @@ async function run() {
       res.send(parts);
     });
 
+    //login or register
     app.put("/user/:email", async (req, res) => {
       const email = req.params.email;
       const user = req.body;
