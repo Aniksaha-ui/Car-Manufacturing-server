@@ -41,6 +41,7 @@ async function run() {
   //verify admin
   const verifyAdmin = async (req, res, next) => {
     const requester = req.decoded.email;
+    console.log(requester);
     const requesterAccount = await userCollection.findOne({ email: requester });
     if (requesterAccount.role === "admin") {
       next();
@@ -62,6 +63,12 @@ async function run() {
       const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
       res.send({ admin: isAdmin });
+    });
+
+    //users
+    app.get("/user", verifyJWT, async (req, res) => {
+      const users = await userCollection.find().toArray();
+      res.send(users);
     });
 
     //make a person admin
