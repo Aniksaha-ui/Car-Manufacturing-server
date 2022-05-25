@@ -37,6 +37,8 @@ async function run() {
   await client.connect();
   const partsCollection = client.db("Manufacturing").collection("parts");
   const userCollection = client.db("Manufacturing").collection("users");
+  const purchaseCollection = client.db("Manufacturing").collection("purchase");
+  const reviewCollection = client.db("Manufacturing").collection("review");
 
   //verify admin
   const verifyAdmin = async (req, res, next) => {
@@ -51,6 +53,7 @@ async function run() {
   };
 
   try {
+    // parts
     app.post("/parts", verifyJWT, verifyAdmin, async (req, res) => {
       const parts = req.body;
       const result = await partsCollection.insertOne(parts);
@@ -76,6 +79,30 @@ async function run() {
         res.status(403).send({ message: "Access Forbidden" });
       }
     });
+
+    //parts end
+
+    //review
+    app.post("/reviews", verifyJWT, async (req, res) => {
+      const review = req.body;
+      const result = await reviewCollection.insertOne(review);
+      res.send(result);
+    });
+
+    app.get("/review", async (req, res) => {
+      const query = {};
+      const result = await reviewCollection.find(query).toArray();
+      res.send(result);
+    });
+    //review
+
+    //purchase
+    app.post("/purchase", verifyJWT, async (req, res) => {
+      const purchase = req.body;
+      const result = await purchaseCollection.insertOne(purchase);
+      res.send(result);
+    });
+    //purchase
 
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
