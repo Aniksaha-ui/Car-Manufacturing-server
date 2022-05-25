@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const jwt = require("jsonwebtoken");
 require("dotenv").config();
-const { MongoClient, ServerApiVersion } = require("mongodb");
+const { MongoClient, ServerApiVersion, ObjectId } = require("mongodb");
 
 const app = express();
 const port = process.env.PORT || 4000;
@@ -51,6 +51,12 @@ async function run() {
   };
 
   try {
+    app.post("/parts", verifyJWT, verifyAdmin, async (req, res) => {
+      const parts = req.body;
+      const result = await partsCollection.insertOne(parts);
+      res.send(result);
+    });
+
     // find all parts
     app.get("/parts", async (req, res) => {
       const query = {};
@@ -58,10 +64,24 @@ async function run() {
       res.send(parts);
     });
 
+    app.get("/parts/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
+        const query = { _id: ObjectId(id) };
+        const parts = await partsCollection.findOne(query);
+        res.send(parts);
+      } else {
+        res.status(403).send({ message: "Access Forbidden" });
+      }
+    });
+
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
       const isAdmin = user.role === "admin";
+      // console.log(email);
       res.send({ admin: isAdmin });
     });
 
@@ -109,5 +129,5 @@ app.get("/", (req, res) => {
 });
 
 app.listen(port, () => {
-  console.log(`Doctors App listening on port ${port}`);
+  console.log(` listening on port ${port}`);
 });
