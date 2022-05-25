@@ -104,6 +104,29 @@ async function run() {
     });
     //purchase
 
+    //mypurchase
+    app.get("/mypurchse", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const decodedEmail = req.decoded.email;
+      if (email === decodedEmail) {
+        const query = { email: email };
+        const purchase = await purchaseCollection.find(query).toArray();
+        return res.send(purchase);
+      } else {
+        return res.status(403).send({ message: "forbidden access" });
+      }
+    });
+
+    //find information by purchase id
+    app.get("/purchase/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const query = { _id: ObjectId(id) };
+      const booking = await purchaseCollection.findOne(query);
+      res.send(booking);
+    });
+
+    //mypurchase end
+
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
       const user = await userCollection.findOne({ email: email });
