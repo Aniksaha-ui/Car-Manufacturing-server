@@ -38,12 +38,41 @@ async function run() {
   const partsCollection = client.db("Manufacturing").collection("parts");
   const userCollection = client.db("Manufacturing").collection("users");
 
+  //verify admin
+  const verifyAdmin = async (req, res, next) => {
+    const requester = req.decoded.email;
+    const requesterAccount = await userCollection.findOne({ email: requester });
+    if (requesterAccount.role === "admin") {
+      next();
+    } else {
+      res.status(403).send({ message: "forbidden" });
+    }
+  };
+
   try {
     // find all parts
     app.get("/parts", async (req, res) => {
       const query = {};
       const parts = await partsCollection.find(query).toArray();
       res.send(parts);
+    });
+
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      res.send({ admin: isAdmin });
+    });
+
+    //make a person admin
+    app.put("/user/admin/:email", verifyJWT, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const updateDoc = {
+        $set: { role: "admin" },
+      };
+      const result = await userCollection.updateOne(filter, updateDoc);
+      res.send(result);
     });
 
     //login or register
