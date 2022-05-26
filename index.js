@@ -40,6 +40,7 @@ async function run() {
   const userCollection = client.db("Manufacturing").collection("users");
   const purchaseCollection = client.db("Manufacturing").collection("purchase");
   const reviewCollection = client.db("Manufacturing").collection("review");
+  const paymentCollection = client.db("Manufacturing").collection("payments");
 
   //verify admin
   const verifyAdmin = async (req, res, next) => {
@@ -71,6 +72,27 @@ async function run() {
         payment_method_types: ["card"],
       });
       res.send({ clientSecret: paymentIntent.client_secret });
+    });
+
+    //store payment
+
+    app.patch("/purchase/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const payment = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: {
+          paid: true,
+          transactionId: payment.transactionId,
+        },
+      };
+
+      const result = await paymentCollection.insertOne(payment);
+      const updatedPurchase = await purchaseCollection.updateOne(
+        filter,
+        updatedDoc
+      );
+      res.send(updatedPurchase);
     });
 
     // find all parts
@@ -182,6 +204,21 @@ async function run() {
       );
       res.send({ result, token });
     });
+
+    //profile update
+    app.put("/profile", verifyJWT, async (req, res) => {
+      const email = req.query.email;
+      const user = req.body;
+      // console.log(email);
+      const filter = { email: email };
+      const updatedDoc = {
+        $set: user,
+      };
+      const updatedProfile = await userCollection.updateOne(filter, updatedDoc);
+      res.send(updatedProfile);
+    });
+
+    //profile update done
   } finally {
   }
 }
