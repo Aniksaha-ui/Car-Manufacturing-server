@@ -130,6 +130,14 @@ async function run() {
       }
     });
 
+    //front page
+    app.get("/allparts", async (req, res) => {
+      const query = {};
+      const parts = await partsCollection.find(query).toArray();
+      res.send(parts);
+    });
+    //front page
+
     //parts end
 
     //review
