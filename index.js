@@ -45,7 +45,7 @@ async function run() {
   //verify admin
   const verifyAdmin = async (req, res, next) => {
     const requester = req.decoded.email;
-    console.log(requester);
+    // console.log(requester);
     const requesterAccount = await userCollection.findOne({ email: requester });
     if (requesterAccount.role === "admin") {
       next();
@@ -60,6 +60,13 @@ async function run() {
       const parts = req.body;
       const result = await partsCollection.insertOne(parts);
       res.send(result);
+    });
+
+    // find all parts
+    app.get("/admin/parts", verifyJWT, verifyAdmin, async (req, res) => {
+      const query = {};
+      const parts = await partsCollection.find(query).toArray();
+      res.send(parts);
     });
 
     app.post("/create-payment-intent", verifyJWT, async (req, res) => {
@@ -95,10 +102,19 @@ async function run() {
       res.send(updatedPurchase);
     });
 
-    // find all parts
-    app.get("/parts", async (req, res) => {
-      const query = {};
-      const parts = await partsCollection.find(query).toArray();
+    //delete parts from admin
+
+    app.delete("/parts/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: ObjectId(id) };
+      const result = await partsCollection.deleteOne(filter);
+      res.send(result);
+    });
+
+    //find all product for admin
+    app.get("/admin/parts", verifyJWT, verifyAdmin, async (req, res) => {
+      const parts = await partsCollection.find().toArray();
       res.send(parts);
     });
 
@@ -177,13 +193,23 @@ async function run() {
       res.send({ admin: isAdmin });
     });
 
-    //delete purchase
+    //delete purchase from admin
     app.delete("/purchase/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
       const result = await purchaseCollection.deleteOne(filter);
       res.send(result);
     });
+
+    //delete purchase from user
+    app.delete("/purchase/:email", verifyJWT, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await purchaseCollection.deleteOne(filter);
+      res.send(result);
+    });
+
+    //update purchase status
 
     //users
     app.get("/user", verifyJWT, verifyAdmin, async (req, res) => {
