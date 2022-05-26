@@ -140,12 +140,13 @@ async function run() {
       res.send(result);
     });
 
+    //all review
     app.get("/review", async (req, res) => {
       const query = {};
       const result = await reviewCollection.find(query).toArray();
       res.send(result);
     });
-    //review
+    //all review
 
     //purchase
     app.post("/purchase", verifyJWT, async (req, res) => {
@@ -158,6 +159,15 @@ async function run() {
     app.get("/purchase", verifyJWT, verifyAdmin, async (req, res) => {
       const purchase = await purchaseCollection.find().toArray();
       res.send(purchase);
+    });
+
+    //delete purchase from user
+    app.delete("/purchase/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      console.log(id);
+      const filter = { _id: ObjectId(id) };
+      const result = await purchaseCollection.deleteOne(filter);
+      res.send(result);
     });
 
     //purchase
@@ -183,22 +193,22 @@ async function run() {
       res.send(booking);
     });
 
-    //mypurchase end
-
-    app.get("/admin/:email", async (req, res) => {
-      const email = req.params.email;
-      const user = await userCollection.findOne({ email: email });
-      const isAdmin = user.role === "admin";
-      // console.log(email);
-      res.send({ admin: isAdmin });
-    });
-
     //delete purchase from admin
     app.delete("/purchase/:email", verifyJWT, verifyAdmin, async (req, res) => {
       const email = req.params.email;
       const filter = { email: email };
       const result = await purchaseCollection.deleteOne(filter);
       res.send(result);
+    });
+
+    //mypurchase end
+    //is admin or not
+    app.get("/admin/:email", async (req, res) => {
+      const email = req.params.email;
+      const user = await userCollection.findOne({ email: email });
+      const isAdmin = user.role === "admin";
+      // console.log(email);
+      res.send({ admin: isAdmin });
     });
 
     //delete purchase from user
@@ -208,6 +218,8 @@ async function run() {
       const result = await purchaseCollection.deleteOne(filter);
       res.send(result);
     });
+
+    //update purchase status
 
     //update purchase status
 
