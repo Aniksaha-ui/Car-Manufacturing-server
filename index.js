@@ -103,7 +103,6 @@ async function run() {
     });
 
     //delete parts from admin
-
     app.delete("/parts/:id", verifyJWT, verifyAdmin, async (req, res) => {
       const id = req.params.id;
       console.log(id);
@@ -194,14 +193,15 @@ async function run() {
     });
 
     //delete purchase from admin
-    app.delete("/purchase/:email", verifyJWT, verifyAdmin, async (req, res) => {
-      const email = req.params.email;
-      const filter = { email: email };
+    app.delete("/purchase/:id", verifyJWT, verifyAdmin, async (req, res) => {
+      const id = req.params.id;
+      const filter = { _id: ObjectId(id) };
       const result = await purchaseCollection.deleteOne(filter);
       res.send(result);
     });
 
     //mypurchase end
+
     //is admin or not
     app.get("/admin/:email", async (req, res) => {
       const email = req.params.email;
@@ -219,7 +219,7 @@ async function run() {
       res.send(result);
     });
 
-    //update purchase status
+    //update purchase status from admin
 
     //update purchase status
 
