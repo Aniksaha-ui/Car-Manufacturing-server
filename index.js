@@ -220,7 +220,16 @@ async function run() {
     });
 
     //update purchase status from admin
-
+    app.put("/purchase/:id", verifyJWT, async (req, res) => {
+      const id = req.params.id;
+      const updateStatus = req.body;
+      const filter = { _id: ObjectId(id) };
+      const updatedDoc = {
+        $set: updateStatus,
+      };
+      const status = await purchaseCollection.updateOne(filter, updatedDoc);
+      res.send(status);
+    });
     //update purchase status
 
     //users
