@@ -137,6 +137,13 @@ async function run() {
       const result = await purchaseCollection.insertOne(purchase);
       res.send(result);
     });
+
+    //all purchase for admin
+    app.get("/purchase", verifyJWT, verifyAdmin, async (req, res) => {
+      const purchase = await purchaseCollection.find().toArray();
+      res.send(purchase);
+    });
+
     //purchase
 
     //mypurchase
@@ -170,8 +177,16 @@ async function run() {
       res.send({ admin: isAdmin });
     });
 
+    //delete purchase
+    app.delete("/purchase/:email", verifyJWT, verifyAdmin, async (req, res) => {
+      const email = req.params.email;
+      const filter = { email: email };
+      const result = await purchaseCollection.deleteOne(filter);
+      res.send(result);
+    });
+
     //users
-    app.get("/user", verifyJWT, async (req, res) => {
+    app.get("/user", verifyJWT, verifyAdmin, async (req, res) => {
       const users = await userCollection.find().toArray();
       res.send(users);
     });
